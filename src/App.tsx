@@ -1,26 +1,12 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+	return (
+		<div className="App">
+			<img src="http://192.168.1.49:8000/stream.mjpg" width="1024" height="576" alt="stream" />
+			<img src="http://192.168.1.49:8000/snapshot.jpg" width="1024" height="576" alt="snapshot" />
+		</div>
+	);
 }
 
 export default App;
