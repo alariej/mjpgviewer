@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 		color: 'white',
 	},
 	temperature: {
-		fontSize: 16,
+		fontSize: 14,
 		color: 'white',
 	},
 });
