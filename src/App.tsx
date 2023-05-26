@@ -45,12 +45,33 @@ interface AppState {
 	isStreaming: boolean;
 	imageMarginV: number;
 	imageMarginH: number;
+	temperature: number | undefined;
 }
 
 export default class App extends Component<AppProps, AppState> {
 	constructor(props: AppProps) {
 		super(props);
-		this.state = { isStreaming: false, imageMarginV: 0, imageMarginH: 0 };
+
+	public componentDidMount(): void {
+		const setTemperature = async () => {
+			const response = await fetch(
+				'https://api.open-meteo.com/v1/forecast?latitude=' +
+					this.latitude +
+					'&longitude=' +
+					this.longitude +
+					'&current_weather=true&forecast_days=1'
+			);
+
+			if (response.status === 200) {
+				const weatherInfo = await response.json();
+				const temperature = weatherInfo.current_weather.temperature;
+				this.setState({ temperature: temperature });
+			}
+		};
+
+		setTemperature();
+
+		setInterval(setTemperature, 1000 * 60 * 15);
 	}
 
 	private toggleMedia = () => {
@@ -95,7 +116,7 @@ export default class App extends Component<AppProps, AppState> {
 							{ marginBottom: this.state.imageMarginV + 8, marginRight: this.state.imageMarginH + 8 },
 						]}
 					>
-						20.5 °C
+						{this.state.temperature ? this.state.temperature + ' °C' : ''}
 					</Text>
 				</ImageBackground>
 			</SafeAreaView>
