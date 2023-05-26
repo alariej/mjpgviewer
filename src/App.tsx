@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
 import { StyleSheet, ImageBackground, Pressable, Text, SafeAreaView, LayoutChangeEvent } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -34,7 +34,6 @@ const styles = StyleSheet.create({
 	},
 });
 
-const baseUri = 'http://192.168.1.49:8000/';
 const stream = 'stream.mjpg';
 const imageW = 1024;
 const imageH = 576;
@@ -49,8 +48,19 @@ interface AppState {
 }
 
 export default class App extends Component<AppProps, AppState> {
+	private webcamUrl: string | null;
+	private latitude: string | null;
+	private longitude: string | null;
+
 	constructor(props: AppProps) {
 		super(props);
+		this.state = { isStreaming: false, imageMarginV: 0, imageMarginH: 0, temperature: undefined };
+
+		const queryParams = new URLSearchParams(window.location.search);
+		this.latitude = queryParams.get('latitude');
+		this.longitude = queryParams.get('longitude');
+		this.webcamUrl = queryParams.get('webcamurl');
+	}
 
 	public componentDidMount(): void {
 		const setTemperature = async () => {
@@ -91,7 +101,7 @@ export default class App extends Component<AppProps, AppState> {
 
 	public render(): JSX.Element | null {
 		const media = this.state.isStreaming ? stream : 'image_' + Date.now();
-		const mediaUri = baseUri + media;
+		const mediaUri = this.webcamUrl + media;
 
 		return (
 			<SafeAreaView style={styles.container}>
