@@ -1,5 +1,16 @@
 import { Component } from 'react';
-import { StyleSheet, ImageBackground, Pressable, Text, SafeAreaView, LayoutChangeEvent } from 'react-native';
+import {
+	StyleSheet,
+	ImageBackground,
+	Pressable,
+	Text,
+	SafeAreaView,
+	LayoutChangeEvent,
+	NativeSyntheticEvent,
+	ImageErrorEventData,
+	ImageLoadEventData,
+	View,
+} from 'react-native';
 
 const styles = StyleSheet.create({
 	container: {
@@ -32,6 +43,15 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: 'white',
 	},
+	placeholderView: {
+		position: 'absolute',
+		backgroundColor: 'black',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	placeholderText: {
+		fontSize: 64,
+	},
 });
 
 const stream = 'stream.mjpg';
@@ -45,6 +65,7 @@ interface AppState {
 	imageMarginV: number;
 	imageMarginH: number;
 	temperature: number | undefined;
+	isOffline: boolean;
 }
 
 export default class App extends Component<AppProps, AppState> {
@@ -54,7 +75,7 @@ export default class App extends Component<AppProps, AppState> {
 
 	constructor(props: AppProps) {
 		super(props);
-		this.state = { isStreaming: false, imageMarginV: 0, imageMarginH: 0, temperature: undefined };
+		this.state = { isStreaming: false, imageMarginV: 0, imageMarginH: 0, temperature: undefined, isOffline: false };
 
 		const queryParams = new URLSearchParams(window.location.search);
 		this.latitude = queryParams.get('latitude');
@@ -84,6 +105,12 @@ export default class App extends Component<AppProps, AppState> {
 		setInterval(setTemperature, 1000 * 60 * 15);
 	}
 
+	public componentWillUnmount(): void {
+
+		// need to cancel interval
+		
+	}
+
 	private toggleMedia = () => {
 		this.setState({ isStreaming: !this.state.isStreaming });
 	};
@@ -99,7 +126,38 @@ export default class App extends Component<AppProps, AppState> {
 		}
 	};
 
+	private onError = (error: NativeSyntheticEvent<ImageErrorEventData>) => {
+		if (!this.state.isOffline) {
+			this.setState({ isOffline: true });
+		}
+	};
+
+	private onLoad = (event: NativeSyntheticEvent<ImageLoadEventData>) => {
+		if (this.state.isOffline) {
+			this.setState({ isOffline: false });
+		}
+	};
+
 	public render(): JSX.Element | null {
+		let placeholder;
+		if (this.state.isOffline) {
+			placeholder = (
+				<View
+					style={[
+						styles.placeholderView,
+						{
+							top: this.state.imageMarginV,
+							bottom: this.state.imageMarginV,
+							left: this.state.imageMarginH,
+							right: this.state.imageMarginH,
+						},
+					]}
+				>
+					<Text style={styles.placeholderText}>💤</Text>
+				</View>
+			);
+		}
+
 		const media = this.state.isStreaming ? stream : 'image_' + Date.now();
 		const mediaUri = this.webcamUrl + media;
 
@@ -110,12 +168,20 @@ export default class App extends Component<AppProps, AppState> {
 					resizeMode="contain"
 					source={{ uri: mediaUri }}
 					onLayout={this.onLayout}
+					onError={this.onError}
+					onLoad={this.onLoad}
 				>
+					{placeholder}
 					<Pressable
 						style={[
 							styles.button,
-							{ marginBottom: this.state.imageMarginV + 8, marginLeft: this.state.imageMarginH + 8 },
+							{
+								marginBottom: this.state.imageMarginV + 8,
+								marginLeft: this.state.imageMarginH + 8,
+								opacity: this.state.isOffline ? 0.5 : 1,
+							},
 						]}
+						disabled={this.state.isOffline}
 						onPress={this.toggleMedia}
 					>
 						<Text style={styles.playstop}>{this.state.isStreaming ? '■' : '▶'}</Text>
